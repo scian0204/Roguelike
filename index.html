@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>RogueLike</title>
+    <link rel="stylesheet" href="css/index.css">
+</head>
+<body>
+    <table id="map"></table>
+    
+    <div id="right">
+        <div id="info">
+            <h1>현재 층 : <span id="layer">1</span></h1>
+            <h1>맵 달성률 : <span id="achievementRate"></span>%</h1>
+            <h2>걸음 수 : <span id="steps">0</span></h2>
+        </div>
+
+        <div id="arrowKey">
+            <div class="row">
+                <button id="btnUp" class="button button-vertical">▲</button>
+            </div>
+            <div class="row">
+                <button id="btnLeft" class="button button-horizontal">◀</button>
+                <button id="btnRight" class="button button-horizontal">▶</button>
+            </div>
+            <div class="row">
+                <button id="btnDown" class="button button-vertical">▼</button>
+            </div>
+        </div>
+    </div>
+        
+    <script src="js/roguelike.js"></script>
+</body>
+</html>
