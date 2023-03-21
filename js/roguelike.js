@@ -1,18 +1,22 @@
 // Set up the map object
-const mapWidth = 50;
-const mapHeight = 50;
-const map = document.getElementById("map");
-const numRooms = 10;
-const minRoomSize = 5;
-const maxRoomSize = 15;
-const rooms = [];
-const corridors = [];
-const visualRange = Math.floor(maxRoomSize/2-5) < minRoomSize ? minRoomSize : Math.floor(maxRoomSize/2-5);
+let mapWidth = 50;
+let mapHeight = 50;
+let map = document.getElementById("map");
+let numRooms = 10;
+let minRoomSize = 5;
+let maxRoomSize = 15;
+let rooms = [];
+let corridors = [];
+let visualRange = Math.floor((maxRoomSize/2) - (minRoomSize/2)) < minRoomSize ? minRoomSize : Math.floor((maxRoomSize/2) - (minRoomSize/2));
+let playerLoc = [];
+let stairsLoc = [];
 
 // info
 let mapTotal = 0;
 let mapActivity = 0;
 let steps = 0;
+let layer = 1;
+let layerSpan = document.getElementById("layer");
 
 // Create the initial map with empty tiles
 for (let x = 0; x < mapWidth; x++) {
@@ -32,6 +36,7 @@ const mapLoc = (x, y) => map.children[y].children[x];
 const isWall = (x, y) => mapLoc(x, y).classList.contains("wall");
 const isFloor = (x, y) => mapLoc(x, y).classList.contains("floor");
 const isCorridor = (x, y) => mapLoc(x, y).classList.contains("corridor");
+const isStairs = (x, y) => mapLoc(x, y).classList.contains("stairs");
 const isOutOfBounds = (x, y) => x < 0 || y < 0 || x >= mapWidth || y >= mapHeight;
 
 /** Create a function to check if two rooms overlap */
@@ -56,8 +61,8 @@ const generateMap = () => {
 
   // Add some randomly placed rooms
   for (let i = 0; i < numRooms; i++) {
-    const roomWidth = Math.floor(Math.random() * (maxRoomSize - minRoomSize + 1)) + minRoomSize;
-    const roomHeight = Math.floor(Math.random() * (maxRoomSize - minRoomSize + 1)) + minRoomSize;
+    const roomWidth = Math.floor(Math.random() * (maxRoomSize - minRoomSize)+1) + minRoomSize;
+    const roomHeight = Math.floor(Math.random() * (maxRoomSize - minRoomSize)+1) + minRoomSize;
     const x = Math.floor(Math.random() * (mapWidth - roomWidth));
     const y = Math.floor(Math.random() * (mapHeight - roomHeight));
 
@@ -109,11 +114,63 @@ const generateMap = () => {
       mapLoc(centerX2, y).classList.add("corridor");
     }
   }
+  playerLoc = [
+    Math.floor(rooms[0].x + rooms[0].width / 2), 
+    Math.floor(rooms[0].y + rooms[0].height / 2)
+  ];
+  
+  let stairsRoom = rooms[Math.floor(Math.random() * rooms.length)]
+  
+  stairsLoc = [
+    Math.floor(
+      Math.random() * (stairsRoom.width-2)
+    ) + stairsRoom.x+1,
+    
+    Math.floor(
+      Math.random() * (stairsRoom.height-2)
+    ) + stairsRoom.y+1
+  ]
 };
+
+const nextLayer = () => {
+  let isNextLayer = confirm("다음층으로?");
+  if (!isNextLayer) {
+    return;
+  }
+  
+  rooms = [];
+  corridors = [];
+  layer++;
+  layerSpan.innerText = layer;
+  mapTotal = 0;
+  mapActivity = 0;
+  steps = 0;
+
+  mapWidth += 5;
+  mapWidth = mapWidth >= 100 ? 100 : mapWidth;
+  mapHeight += 5;
+  mapHeight = mapHeight >= 100 ? 100 : mapHeight;
+  numRooms++;
+  maxRoomSize++;
+  maxRoomSize = maxRoomSize >= 25 ? 25 : maxRoomSize;
+
+  map.innerHTML = "";
+  for (let x = 0; x < mapWidth; x++) {
+    let tr = document.createElement("tr");
+    for (let y = 0; y < mapHeight; y++) {
+      let td = document.createElement("td");
+      td.style.visibility = "hidden";
+      tr.appendChild(td);
+    }
+    map.appendChild(tr);
+  }
+
+  generateMap();
+  play();
+}
 
 // play
 generateMap();
-let playerLoc = [Math.floor(rooms[0].x + rooms[0].width / 2), Math.floor(rooms[0].y + rooms[0].height / 2)];
 
 /** Activate the map when the player first enters a room or corridor */
 const mapping = () => {
@@ -125,7 +182,7 @@ const mapping = () => {
       if (isOutOfBounds(xx, yy)) {
         continue;
       }
-      if ((isFloor(xx, yy) || isCorridor(xx, yy)) && mapLoc(xx, yy).style.visibility == "hidden") {
+      if ((isFloor(xx, yy) || isCorridor(xx, yy) || isStairs(xx, yy)) && mapLoc(xx, yy).style.visibility == "hidden") {
         mapActivity++;
         mapLoc(xx, yy).style.visibility = "";
       }
@@ -147,46 +204,46 @@ const movePlayer = (direction) => {
   switch(direction) {
     case 0:
       if (isOutOfBounds(playerLoc[0], playerLoc[1]-1) || isWall(playerLoc[0], playerLoc[1]-1)) {
-        break;
+        return;
       }
-      steps++;
       mapLoc(playerLoc[0], playerLoc[1]).classList.add("floor");
       mapLoc(playerLoc[0], playerLoc[1]--).classList.remove("player");
       mapLoc(playerLoc[0], playerLoc[1]).classList.add("player");
       break;
     case 1:
       if (isOutOfBounds(playerLoc[0]+1, playerLoc[1]) || isWall(playerLoc[0]+1, playerLoc[1])) {
-        break;
+        return;
       }
-      steps++;
       mapLoc(playerLoc[0], playerLoc[1]).classList.add("floor");
       mapLoc(playerLoc[0]++, playerLoc[1]).classList.remove("player");
       mapLoc(playerLoc[0], playerLoc[1]).classList.add("player");
       break;
     case 2:
       if (isOutOfBounds(playerLoc[0], playerLoc[1]+1) || isWall(playerLoc[0], playerLoc[1]+1)) {
-        break;
+        return;
       }
-      steps++;
       mapLoc(playerLoc[0], playerLoc[1]).classList.add("floor");
       mapLoc(playerLoc[0], playerLoc[1]++).classList.remove("player");
       mapLoc(playerLoc[0], playerLoc[1]).classList.add("player");
       break;
     case 3:
       if (isOutOfBounds(playerLoc[0]-1, playerLoc[1]) || isWall(playerLoc[0]-1, playerLoc[1])) {
-        break;
+        return;
       }
-      steps++;
       mapLoc(playerLoc[0], playerLoc[1]).classList.add("floor");
       mapLoc(playerLoc[0]--, playerLoc[1]).classList.remove("player");
       mapLoc(playerLoc[0], playerLoc[1]).classList.add("player");
       break;
   }
-
+  steps++;
   let stepsSpan = document.getElementById("steps");
   stepsSpan.innerText = steps;
 
   mapping();
+
+  if ((playerLoc[0] == stairsLoc[0]) && (playerLoc[1] == stairsLoc[1])) {
+    nextLayer();
+  }
 }
 
 let btnUp = document.getElementById("btnUp");
@@ -214,8 +271,14 @@ document.addEventListener("keydown", function(event) {
 /** start game */
 const play = () => {
   mapping();
+
+  // player
   mapLoc(playerLoc[0], playerLoc[1]).classList.remove("floor");
   mapLoc(playerLoc[0], playerLoc[1]).classList.add("player");
+
+  //stairs
+  mapLoc(stairsLoc[0], stairsLoc[1]).classList.remove("floor");
+  mapLoc(stairsLoc[0], stairsLoc[1]).classList.add("stairs");
 }
 
 
