@@ -245,7 +245,7 @@ class Player extends Entity {
 
   moveEntity(direction) {
     let result = super.moveEntity(direction);
-    this.steps++;
+    this.steps += result?1:0;
     this.stepsDom.innerText = this.steps;
   
     this.map.mapping(this.x, this.y, this.status.visualRange);
