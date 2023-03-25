@@ -150,6 +150,18 @@ class Entity {
   x;
   y;
   name = "";
+  status = {
+    lv: 1,
+    exp: 0,
+    hp: 0,
+    mp: 0,
+    atk: 0,
+    def: 0,
+    visualRange: 0,
+    luck: 0,
+  };
+  inven = {};
+  skills = {};
 
   constructor(map) {
     this.map = map;
@@ -211,12 +223,19 @@ class Entity {
 class Player extends Entity {
   steps = 0;
   stepsDom = document.getElementById("steps");
-  visualRange;
+  statusDom = {};
 
   constructor(...args) {
     super(...args);
     this.name = "player";
-    this.visualRange = Math.floor((map.maxRoomSize/2) - (map.minRoomSize/2)) < map.minRoomSize ? map.minRoomSize : Math.floor((map.maxRoomSize/2) - (map.minRoomSize/2))
+    this.status.visualRange = Math.floor((map.maxRoomSize/2) - (map.minRoomSize/2)) < map.minRoomSize ? map.minRoomSize : Math.floor((map.maxRoomSize/2) - (map.minRoomSize/2))
+
+
+    for (const key in this.status) {
+      this.statusDom[key] = document.getElementById(key);
+      this.statusDom[key].innerText = this.status[key];
+    }
+
   }
 
   locReset() {
@@ -229,7 +248,7 @@ class Player extends Entity {
     this.steps++;
     this.stepsDom.innerText = this.steps;
   
-    this.map.mapping(this.x, this.y, this.visualRange);
+    this.map.mapping(this.x, this.y, this.status.visualRange);
 
     return result;
   }
@@ -300,7 +319,7 @@ document.addEventListener("keydown", function(event) {
 const play = () => {
   player.locReset();
   stairs.locReset();
-  map.mapping(player.x, player.y, player.visualRange);
+  map.mapping(player.x, player.y, player.status.visualRange);
   map.mapLoc(player.x, player.y).classList.remove("room");
   map.mapLoc(player.x, player.y).classList.add(player.name);
   map.mapLoc(stairs.x, stairs.y).classList.remove("room");
