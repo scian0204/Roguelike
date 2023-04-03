@@ -33,6 +33,10 @@
     background-color: green;
 }
 
+.enemy {
+    background-color: skyblue;
+}
+
 #right {
     float: left;
 }
